@@ -1,0 +1,141 @@
+---
+title: "logistic-regression-lrdemo"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{logistic-regression-lrdemo}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+Overview
+
+LRDemo implements binary and multinomial logistic regression via
+gradient descent. Helper functions are optimized in C++/ Rcpp
+
+This vignette:
+
+- shows how to fit binary and multinomial models 
+
+- compares results to standard R functions (glm, nnet::multinom)
+
+
+```{r}
+library(LRDemo)
+
+set.seed(123)
+n <- 2000
+x <- matrix(rnorm(2 * n), ncol = 2)
+colnames(x) <- c("x1", "x2")
+
+p <- 1 / (1 + exp(-(x[, "x1"] - x[, "x2"])))
+y <- rbinom(n, 1, p)
+
+dat <- data.frame(
+y = y,
+x1 = x[, "x1"],
+x2 = x[, "x2"]
+)
+
+
+fit_demo <- logRegModel(
+x, y,
+family = "binomial",
+lambda = 0,
+lr = 0.1,
+nIter = 500
+)
+
+fit_glm <- glm(y ~ x1 + x2, data = dat, family = binomial())
+
+# Compare coefficients
+
+fit_demo$beta
+coef(fit_glm)
+
+all.equal(
+as.numeric(fit_demo$beta),
+as.numeric(coef(fit_glm)),
+tolerance = 1e-2
+)
+
+# The coefficients from LRDemo are numerically close to glm, which supports
+# the correctness of the implementation.
+
+# Compare fitted probabilities
+
+phat_demo <- predict(fit_demo, x, type = "response")
+phat_glm <- predict(fit_glm, type = "response")
+
+cor(phat_demo, phat_glm)
+mean(abs(phat_demo - phat_glm))
+mean((phat_demo > 0.5) == (phat_glm > 0.5))
+
+# The correlation between the two sets of fitted probabilities is near 1 and
+# classification decisions agree almost all the time.
+
+
+##################################      Multinomial logistic regression
+
+# If y has more than two levels, logRegModel() fits a one-vs-rest
+# multinomial model.
+
+
+set.seed(123)
+n_multi <- 1500
+x_multi <- matrix(rnorm(2 * n_multi), ncol = 2)
+colnames(x_multi) <- c("x1", "x2")
+
+y_multi <- factor(sample(c("A", "B", "C"), n_multi, replace = TRUE))
+
+
+fit_multi_demo <- logRegModel(
+x_multi, y_multi,
+family = "multinomial",
+nIter = 500
+)
+
+pred_multi_demo <- predict(fit_multi_demo, x_multi, type = "class")
+head(table(Truth = y_multi, Pred = pred_multi_demo))
+
+# If the nnet package is available, we can compare with multinom():
+
+
+if (requireNamespace("nnet", quietly = TRUE)) {
+  fit_multi_nnet <- nnet::multinom(
+    y_multi ~ x1 + x2,
+    data = data.frame(
+      y_multi = y_multi,
+      x1 = x_multi[, "x1"],
+      x2 = x_multi[, "x2"]
+    ),
+    trace = FALSE
+  )
+
+  pred_multi_nnet <- predict(fit_multi_nnet, type = "class")
+
+  mean(pred_multi_demo == pred_multi_nnet)
+}
+
+
+# This shows that the multinomial version of logRegModel() produces
+# classifications that are similar to those from a standard reference
+# implementation, while keeping the implementation simple and based on gradient
+# descent with Rcpp-accelerated core computations.
+
+```
+
+
+
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(LRDemo)
+
+```

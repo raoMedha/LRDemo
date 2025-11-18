@@ -6,7 +6,7 @@ Author: Who wrote it
 Maintainer: The package maintainer <yourself@somewhere.net>
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
-License: AGPL (>= 3)
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
@@ -17,3 +17,7 @@ Imports:
     Rcpp
 URL: https://github.com/raoMedha/LRDemo
 BugReports: https://github.com/raoMedha/LRDemo/issues
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
