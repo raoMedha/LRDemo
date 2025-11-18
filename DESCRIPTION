@@ -15,3 +15,5 @@ LinkingTo:
     Rcpp
 Imports: 
     Rcpp
+URL: https://github.com/raoMedha/LRDemo
+BugReports: https://github.com/raoMedha/LRDemo/issues
