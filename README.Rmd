@@ -26,7 +26,7 @@ You can install the development version of LRDemo like so:
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("YOUR_GITHUB_USERNAME/LRDemo")
+devtools::install_github("raoMedha/LRDemo")
 ```
 
 ## Example
